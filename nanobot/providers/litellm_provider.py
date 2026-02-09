@@ -254,7 +254,7 @@ class LiteLLMProvider(LLMProvider):
             body["tools"] = tools
             body["tool_choice"] = "auto"
 
-        # Call Copilot API directly
+        # Call Copilot API directly with retry on 401 (expired token)
         async with httpx.AsyncClient(timeout=120.0) as client:
             response = await client.post(
                 f"{copilot_api_base}/chat/completions",
@@ -266,6 +266,25 @@ class LiteLLMProvider(LLMProvider):
                 },
                 json=body,
             )
+
+            # If token expired, refresh and retry once
+            if response.status_code == 401:
+                # Invalidate cache and force refresh
+                manager = _get_copilot_token_manager()
+                await manager.invalidate_cache()
+                copilot_token, copilot_api_base = await self._refresh_copilot_token()
+
+                # Retry with new token
+                response = await client.post(
+                    f"{copilot_api_base}/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {copilot_token}",
+                        "Content-Type": "application/json",
+                        "User-Agent": "GitHubCopilotChat/0.26.7",
+                        "Editor-Version": "vscode/1.96.2",
+                    },
+                    json=body,
+                )
 
             if response.status_code != 200:
                 return LLMResponse(

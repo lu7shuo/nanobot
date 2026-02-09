@@ -310,6 +310,7 @@ def _make_provider(config):
         default_model=model,
         extra_headers=p.extra_headers if p else None,
         provider_name=config.get_provider_name(),
+        github_token=p.api_key if p and p.api_key and p.api_key.startswith("ghu_") else None,
     )
 
 
