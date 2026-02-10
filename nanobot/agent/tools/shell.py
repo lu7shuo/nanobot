@@ -26,7 +26,9 @@ class ExecTool(Tool):
             r"\brm\s+-[rf]{1,2}\b",          # rm -r, rm -rf, rm -fr
             r"\bdel\s+/[fq]\b",              # del /f, del /q
             r"\brmdir\s+/s\b",               # rmdir /s
-            r"\b(format|mkfs|diskpart)\b",   # disk operations
+            r"\bformat\s+[A-Za-z]:",         # format C: (Windows disk format)
+            r"\bmkfs\b",                      # mkfs
+            r"\bdiskpart\b",                  # diskpart
             r"\bdd\s+if=",                   # dd
             r">\s*/dev/sd",                  # write to disk
             r"\b(shutdown|reboot|poweroff)\b",  # system power
